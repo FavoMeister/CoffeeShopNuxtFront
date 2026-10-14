@@ -1,10 +1,17 @@
-//import { defineNuxtConfig } from "nuxt/config";
+import { defineNuxtConfig } from "nuxt/config";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  //compatibilityDate: '2025-07-15',
+  compatibilityDate: '2025-07-15',
+  build: {
+    transpile: ['notivue']
+  },
   devtools: { enabled: true },
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    'notivue/notification.css',
+    'notivue/animations.css'
+  ],
   app:{
     pageTransition: {name: "page", mode: "out-in"},
     head:{
@@ -22,6 +29,21 @@ export default defineNuxtConfig({
       script:[
         { src: 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4', tagPosition: 'head'}
       ]
+    }
+  },
+  modules: [
+    'notivue/nuxt'
+  ],
+  // Opciones del módulo en Nuxt 4+
+  notivue: {
+    position: 'top-right',
+    limit: 4,
+    enqueue: true,
+    avoidDuplicates: true,
+    notifications: {
+      global: {
+        duration: 4000
+      }
     }
   }
 })
