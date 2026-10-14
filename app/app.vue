@@ -1,7 +1,22 @@
+<script setup>
+import { Notivue, Notification } from 'notivue';
+</script>
 <template>
-  <div>
+  <NuxtLayout >
+    <NuxtPage :key="$route.fullPath"/>
+  </NuxtLayout>
+  <Notivue v-slot="item">
+    <Notification :item="item"></Notification>
+  </Notivue>
+  <!-- <div>
     <NuxtRouteAnnouncer />
     <NuxtWelcome />
     {{  }}
-  </div>
+  </div> -->
 </template>
+
+<style>
+[v-clock]{
+  display: none !important;
+}
+</style>
