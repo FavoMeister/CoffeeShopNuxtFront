@@ -69,6 +69,7 @@
 
 <script setup>
     import '~/assets/index.css'
+     import '~/composables/useRateLimit'
     import FooterComponent from '~/components/FooterComponent.vue';
     import HeaderComponent from '~/components/HeaderComponent.vue';
     import {ref, computed, onMounted, watch} from 'vue';
@@ -111,13 +112,19 @@
             { id: 'comidas', label: 'Comidas', icon: 'fas fa-hamburger' },
             { id: 'snacks', label: 'Snacks', icon: 'fas fa-cookie-bite' },
         ];
-        
+        const verifyRateLimit = useRateLimit('productList', 30000, 5)
+        if(!verifyRateLimit()){
+            originalProductsList.value = JSON.parse(localStorage.getItem('productListBackup'))
+            push.warning({title: 'Muchas peticiones', message: "Demasiadas solicitudes, se cargó una copia de los datos."})
+            return
+        }
+
         getProductList(URL_BASE_API+'/api/v1/products')
 
     })
 
     const currentTab = computed(()=>{
-        return tabs.value.find(t=> t.id=== activeTab.value) || tabs.value[0]
+        return tabs.value.find(t=> t.id === activeTab.value) || tabs.value[0]
     })
 
     watch(currentTab,(valor)=>{
