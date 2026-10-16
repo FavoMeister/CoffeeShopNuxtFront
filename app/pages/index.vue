@@ -69,7 +69,7 @@
 
 <script setup>
     import '~/assets/index.css'
-     import '~/composables/useRateLimit'
+    import '~/composables/useRateLimit'
     import FooterComponent from '~/components/FooterComponent.vue';
     import HeaderComponent from '~/components/HeaderComponent.vue';
     import {ref, computed, onMounted, watch} from 'vue';
