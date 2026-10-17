@@ -7,9 +7,9 @@ export default defineNuxtRouteMiddleware(() => {
         const token_type = localStorage.getItem('token_type')
         const user = localStorage.getItem('user')
         if (!user || !token || !token_type) {
-            return navigateTo('/auth')
+            return navigateTo('/auth', { replace: true })
         }
     } catch (error) {
-        return navigateTo('/')
+        return navigateTo('/', { replace: true })
     }
 })

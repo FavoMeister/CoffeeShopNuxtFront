@@ -56,7 +56,7 @@
           :disabled="loading"
           class="w-full bg-[#2F4F4F] text-white py-3 rounded-lg text-lg font-bold hover:bg-[#192d2d] transition duration-200 shadow-lg"
         >
-          <i class="fas fa-sign-in-alt mr-2"></i> {{ loading?'Espere..':'Iniciar Sesión' }}
+          <i class="fas fa-sign-in-alt mr-2"></i> {{ loading ? 'Espere..' : 'Iniciar Sesión' }}
         </button>
       </form>
     </div>
@@ -85,9 +85,10 @@ const submitLogin = async () =>{
 
     try {
         const {data} = await axios.post(URL_BASE_API + '/api/v1/auth/login', formData.value)
-        console.log(data)
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('token_type', data.type)
+        //console.log(data)
+        localStorage.setItem('user', JSON.stringify(data.data.user))
+        localStorage.setItem('token', data.data.token)
+        localStorage.setItem('token_type', data.data.type || 'Bearer')
 
         await navigateTo({path: '/home'})
     } catch (error) {
