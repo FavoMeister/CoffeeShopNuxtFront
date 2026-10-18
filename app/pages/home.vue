@@ -82,7 +82,7 @@
                     <div v-if="!loading" v-for="item in productsList" :key="item.id"
                         class="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition duration-200 border border-gray-100 flex flex-col justify-between">
 
-                        <div class="flex items-start space-x-4 cursor-pointer mb-3" onclick="showDetailModal(2)">
+                        <div class="flex items-start space-x-4 cursor-pointer mb-3" @click="product = item">
                             <img class="w-16 h-16 object-cover rounded-full flex-shrink-0 border-2 border-gray-200"
                                 :src="item.imageUrl" alt="Americano">
 
@@ -104,10 +104,11 @@
                             </div>
                         </div>
 
-                        <button
+                        <button @click="agregarProducto(item)"
                             class="w-full bg-secondary text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-primary transition duration-200">
-                            Añadir Rápido (+1)
+                            <i class="fas fa-plus mr-1"></i> Añadir Rápido
                         </button>
+
                     </div>
 
 
@@ -139,14 +140,13 @@
             </div>
         </div>
 
-        <div id="product-modal"
-            class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onclick="hideDetailModal()">
-            <div class="bg-white rounded-lg max-w-lg w-full overflow-hidden shadow-2xl"
-                onclick="event.stopPropagation()">
+        <div id="product-modal" v-if="product"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 pt-12">
+            <div class="bg-white rounded-lg max-w-lg w-full overflow-hidden shadow-2xl">
                 <div class="relative">
-                    <img id="modal-image" class="w-full h-64 object-cover" src="" alt="Imagen del Producto">
-                    <button onclick="hideDetailModal()"
+                    <img id="modal-image" class="w-full h-64 object-cover" :src="product.imageUrl"
+                        alt="Imagen del Producto">
+                    <button @click="product = null"
                         class="absolute top-3 right-3 bg-white rounded-full p-2 text-primary hover:bg-gray-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -157,20 +157,29 @@
                 </div>
 
                 <div class="p-6">
-                    <h3 id="modal-title" class="text-3xl font-bold text-primary mb-2"></h3>
-                    <p id="modal-description" class="text-gray-600 mb-6"></p>
+                    <h3 id="modal-title" class="text-3xl font-bold text-primary mb-2">{{ product.name }}</h3>
+                    <p id="modal-description" class="text-gray-600 mb-6">{{ product.description }}</p>
 
                     <div class="flex justify-between items-center mb-6 border-t pt-4">
-                        <span id="modal-price" class="text-3xl font-bold text-secondary"></span>
+                        <span id="modal-price" class="text-3xl font-bold text-secondary">
+                            {{
+                                new Intl.NumberFormat('es-BO', {
+                                    style: 'currency',
+                                    currency: 'BOB',
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                }).format(product.price)
+                            }}
+                        </span>
 
                         <div class="flex items-center space-x-3">
                             <label for="modal-quantity" class="text-primary font-semibold">Cantidad:</label>
-                            <input type="number" id="modal-quantity" value="1" min="1" max="10"
+                            <input type="number" v-model="modalQuantity" id="modal-quantity" min="1" max="10"
                                 class="w-16 p-2 border border-gray-300 rounded-lg text-center focus:ring-secondary focus:border-secondary">
                         </div>
                     </div>
 
-                    <button id="modal-add-button"
+                    <button @click="agregarProducto(product)" id="modal-add-button"
                         class="w-full bg-secondary text-white py-3 rounded-lg text-lg font-bold hover:bg-primary transition duration-200">
                         <i class="fas fa-plus mr-2"></i> Añadir al Pedido
                     </button>
@@ -204,6 +213,10 @@ const token = ref({
     token_type: ''
 })
 const loading = ref(true)
+const product = ref()
+const modalQuantity = ref(1)
+const customerName = ref()
+const discount = ref()
 const productsList = ref([])
 
 const originalProductsList = ref([])
@@ -231,8 +244,8 @@ const logOut = async () => {
     console.log(token.value.token);
     try {
         await axios.post(
-            URL_BASE_API + '/api/v1/account/logout', 
-            {}, 
+            URL_BASE_API + '/api/v1/account/logout',
+            {},
             {
                 headers: {
                     Authorization: `${token.value.token_type} ${token.value.token}`
@@ -244,8 +257,12 @@ const logOut = async () => {
 
     } catch (err) {
         push.error({ title: 'Error', message: err.message, timeout: 8000 })
+        return navigateTo({ path: '/auth' })
     } finally {
+        localStorage.clear()
         loading.value = false
+
+        window.location.href = '/'
     }
 }
 
@@ -301,4 +318,30 @@ watch(currentTab, (valor) => {
 watch(inputSearch, (nuevoValor) => {
     productsList.value = originalProductsList.value.filter(item => item.name.toLowerCase().includes(nuevoValor.toLowerCase()))
 })
+
+
+const agregarProducto = (productoNuevo) => {
+
+    const cantidadModal = modalQuantity.value
+
+    const itemExistente = order.value.find(item => item.id === productoNuevo.id);
+
+    if (itemExistente) {
+        itemExistente.quantity += cantidadModal;
+    } else {
+        order.value.push({
+            ...productoNuevo,
+            quantity: cantidadModal
+        });
+    }
+    modalQuantity.value = 1
+    product.value = null
+};
+
+const eliminarProducto = (productoId) => {
+    const index = order.value.findIndex(item => item.id === productoId);
+    if (index !== -1) {
+        order.value.splice(index, 1);
+    }
+};
 </script>

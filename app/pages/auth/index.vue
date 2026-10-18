@@ -90,7 +90,7 @@ const submitLogin = async () =>{
         localStorage.setItem('token', data.data.token)
         localStorage.setItem('token_type', data.data.type || 'Bearer')
 
-        await navigateTo({path: '/home'})
+        await navigateTo('/home', { replace: true })
     } catch (error) {
         push.error({title: 'Acceso denegado', message: 'Datos de acceso incorrectos'})
     }finally{

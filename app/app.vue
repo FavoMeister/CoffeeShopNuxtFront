@@ -5,8 +5,9 @@ import { Notivue, Notification } from 'notivue';
   <NuxtLayout >
     <NuxtPage :key="$route.fullPath"/>
   </NuxtLayout>
+  
   <Notivue v-slot="item">
-    <Notification :item="item"></Notification>
+    <Notification :item="item"/>
   </Notivue>
   <!-- <div>
     <NuxtRouteAnnouncer />
