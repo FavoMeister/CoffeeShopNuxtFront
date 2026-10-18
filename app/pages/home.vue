@@ -190,6 +190,8 @@
 
 
     </main>
+
+    <FooterComponent/>
 </template>
 
 <script setup>
@@ -200,6 +202,7 @@ import '~/assets/css/home.css'
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { push } from 'notivue';
+import FooterComponent from '~/components/FooterComponent.vue';
 
 const inputSearch = ref('')
 const tabs = ref([])
