@@ -121,22 +121,78 @@
                 <h2 class="text-2xl font-bold text-primary border-b pb-2 mb-4 text-center">
                     <i class="fas fa-shopping-cart mr-2 text-secondary"></i> TU PEDIDO
                 </h2>
+                <div class="flex-grow overflow-y-auto mb-6 space-y-2 max-h-64 no-scrollbar">
 
-                <ul id="cart-items" class="flex-grow overflow-y-auto mb-6 space-y-2">
-                </ul>
+
+                    <ul id="cart-items">
+                        <li v-if="order.length === 0" class="p-4 text-center text-gray-500 italic">
+                            El pedido está vacío.
+                        </li>
+                        <li v-for="item in order" :key="item.id"
+                            class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <div class="flex-grow">
+                                <p class="text-sm font-semibold text-text-dark">{{ item.name }}</p>
+                                <p class="text-xs text-gray-500">{{ item.quantity }} x {{ formatBOB(item.price) }}</p>
+                            </div>
+                            <span class="font-bold text-secondary">{{ formatBOB(item.price * item.quantity) }}</span>
+                            <button class="text-red-500 hover:text-red-700 ml-4" @click="eliminarProducto(item.id)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </li>
+
+                    </ul>
+                    <div class="flex justify-end pt-4">
+                        <div class="w-full max-w-xs space-y-2 text-right">
+
+                            <div class="flex justify-between border-t border-gray-200 pt-2">
+                                <span class="font-semibold">Subtotal Neto:</span>
+                                <span id="subtotal-base" class="font-medium">{{ formatBOB(subtotalNeto) }}</span>
+                            </div>
+                            <div v-if="order.length > 0">
+                                <div class="mb-4">
+                                    <label for="client-name"
+                                        class="block text-sm font-medium text-gray-700">Cliente:</label>
+                                    <input type="text" id="client-name" v-model="customerName"
+                                        placeholder="Nombre del cliente"
+                                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-secondary focus:border-secondary">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="discount" class="block text-sm font-medium text-gray-700">Descuento
+                                        ($):</label>
+                                    <input type="number" id="discount" v-model="discount" min="0" max="100"
+                                        placeholder="0"
+                                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-secondary focus:border-secondary">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="font-semibold">IVA/TAX:</span>
+                                <span id="iva-amount" class="font-medium">{{ formatBOB(ivaMonto) }}</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
 
                 <div class="mt-auto pt-4 border-t border-gray-200">
+
                     <div class="flex justify-between items-center mb-4 text-lg font-semibold">
                         <span>Total:</span>
-                        <span id="cart-total" class="text-2xl font-bold text-secondary">Bs 0</span>
+                        <span id="cart-total" class="text-2xl font-bold text-secondary">{{
+                            formatBOB(totalFinalConDescuento) }}</span>
                     </div>
 
-                    <button
-                        class="w-full bg-secondary text-white py-3 rounded-lg text-lg font-bold hover:bg-primary transition duration-200 shadow-lg"
-                        onclick="alert('¡Pedido enviado! Total: ' + document.getElementById('cart-total').innerText)">
+                    <button v-if="order.length === 0" :disabled="order.length === 0"
+                        class="w-full bg-secondary text-white py-3 rounded-lg text-lg font-bold hover:bg-primary transition duration-200 shadow-lg">
+                        <i class="fas fa-check mr-2"></i> Confirmar Pedido
+                    </button>
+
+                    <button v-else @click="submitOrder"
+                        class="w-full bg-secondary text-white py-3 rounded-lg text-lg font-bold hover:bg-primary transition duration-200 shadow-lg">
                         <i class="fas fa-check mr-2"></i> Confirmar Pedido
                     </button>
                 </div>
+
             </div>
         </div>
 
@@ -191,7 +247,7 @@
 
     </main>
 
-    <FooterComponent/>
+    <FooterComponent />
 </template>
 
 <script setup>
@@ -295,6 +351,11 @@ onMounted(() => {
     }
     getProductList(URL_BASE_API + '/api/v1/products')
 
+    const storedOrder = localStorage.getItem(STORAGE_KEY_ORDER)
+    if (storedOrder) {
+        order.value = (JSON.parse(storedOrder) || [])
+    }
+
 })
 
 const currentTab = computed(() => {
@@ -322,6 +383,59 @@ watch(inputSearch, (nuevoValor) => {
     productsList.value = originalProductsList.value.filter(item => item.name.toLowerCase().includes(nuevoValor.toLowerCase()))
 })
 
+//PEDIDO
+const order = ref([])
+watch(order, (newOrder) => {
+    localStorage.setItem(STORAGE_KEY_ORDER, JSON.stringify(newOrder))
+    if (newOrder.length === 0) discount.value = null
+}, { deep: true })
+
+const formatBOB = (price) => {
+    const numericPrice = isNaN(price) ? 0 : price;
+    return new Intl.NumberFormat('es-BO', {
+        style: 'currency',
+        currency: 'BOB',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(numericPrice);
+}
+
+// Calcula el subtotal (Base Imponible)
+const subtotalBruto = computed(() => {
+    return order.value.reduce((sum, item) => {
+        // Asumimos que 'item.price' es el precio FINAL (con impuestos incluidos)
+        return sum + (item.price * item.quantity);
+    }, 0);
+});
+
+// Calcula el monto TOTAL del IVA de todos los productos
+const ivaMonto = computed(() => {
+    return order.value.reduce((totalIVA, item) => {
+        const precioTotalItem = item.price * item.quantity;
+        const tasaIVA = item.tax || 0; // Usar 0 si 'tax' no existe o es nulo
+
+        // Lógica para separar el IVA (asumiendo que 'price' ya lo incluye)
+        // Precio Base = Precio Final / (1 + Tasa IVA)
+        const precioBaseUnitario = item.price / (1 + tasaIVA);
+        const ivaUnitario = item.price - precioBaseUnitario;
+
+        return totalIVA + (ivaUnitario * item.quantity);
+    }, 0);
+});
+
+// El Total Final es el subtotal bruto (que ya incluye el IVA por nuestro cálculo)
+const totalFinal = computed(() => {
+    return subtotalBruto.value;
+});
+
+const totalFinalConDescuento = computed(() => {
+    return totalFinal.value > 0 ? totalFinal.value - (discount.value || 0) : 0;
+});
+
+// El Subtotal Neto (antes de impuestos)
+const subtotalNeto = computed(() => {
+    return totalFinal.value - ivaMonto.value;
+});
 
 const agregarProducto = (productoNuevo) => {
 
