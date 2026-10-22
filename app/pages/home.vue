@@ -1,6 +1,6 @@
 <template>
     <main class="bg-background text-text-dark font-cabin antialiased">
-
+        <LoadingComponent v-if="loading" />
         <header class="sticky-header bg-primary text-white h-16 flex items-center justify-between px-4 lg:px-8">
             <div class="flex items-center space-x-2">
                 <i class="fas fa-mug-hot text-xl text-secondary"></i>
@@ -291,6 +291,47 @@ const getProductList = async (url) => {
         localStorage.setItem('productListBackup', JSON.stringify(data.data))
 
     } catch (err) {
+        push.error({ title: 'Error', message: err.message, timeout: 8000 })
+    } finally {
+        loading.value = false
+    }
+}
+
+const submitOrder = async () => {
+    if (!customerName.value) {
+        push.warning({ title: 'Valores faltantes', message: 'Debe ingresar el nombre del cliente', timeout: 8000 })
+        return
+    }
+    loading.value = true
+    error.value = ''
+
+    try {
+        const body = {
+            user: user.value.fullName,
+            client: customerName.value,
+            "table": "M-12",
+            detail: order.value,
+            discount: discount.value,
+            total: totalFinalConDescuento.value
+        }
+        const { data } = await axios.post(URL_BASE_API + '/api/v1/orders', body, {
+            headers: {
+                Authorization: `${token.value.token_type} ${token.value.token}`
+            }
+        })
+        localStorage.removeItem(STORAGE_KEY_ORDER)
+        order.value = []
+        push.success({ title: data.message, message: 'Órden procesada con éxito', timeout: 8000 })
+        const orderId = data.data?.id
+        //navigateTo({path:'/order/'+orderId})
+        window.open(`/orders/${orderId}`, '_blank')
+
+
+    } catch (err) {
+        if (err.message.includes('401')) {
+            push.warning({ title: 'Upps', message: 'Su sesión expiró' })
+            return navigateTo({ path: '/auth' })
+        }
         push.error({ title: 'Error', message: err.message, timeout: 8000 })
     } finally {
         loading.value = false
