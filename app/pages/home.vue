@@ -324,7 +324,7 @@ const submitOrder = async () => {
         push.success({ title: data.message, message: 'Órden procesada con éxito', timeout: 8000 })
         const orderId = data.data?.id
         //navigateTo({path:'/order/'+orderId})
-        window.open(`/orders/${orderId}`, '_blank')
+        window.open(`/order/${orderId}`, '_blank')
 
 
     } catch (err) {
