@@ -195,7 +195,7 @@
                         <div class="grid grid-cols-4 gap-4">
                             <div>
                                 <label for="price" class="block text-sm font-semibold text-text-dark mb-1">Precio
-                                    Ingresado (COP)</label>
+                                    Ingresado (BOB)</label>
                                 <input type="number" v-model="formData.price" id="price" name="price" step="1" required
                                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-secondary focus:border-secondary transition text-right">
                             </div>
@@ -307,6 +307,48 @@ const getProductList = async (url) => {
 }
 
 
+
+const saveProduct = async () => {
+
+    error.value = ''
+
+    if (!formData.value.name) {
+        push.warning({ message: 'Debe ingresar el nombre del producto' })
+        return
+    }
+    loading.value = true
+    try {
+        formData.value.image_url = formData.value.imageUrl
+        delete formData.value.imageUrl
+        delete formData.value.id
+        const { data } = await axios.post(URL_BASE_API + '/api/v1/products', formData.value, {
+            headers: {
+                Authorization: `${token.value.token_type} ${token.value.token}`
+            }
+        })
+        formData.value = {
+            id: -1,
+            name: '',
+            description: '',
+            price: '',
+            category: '',
+            imageUrl: '',
+            tax: 0,
+            stock: 0,
+            reference: ''
+        }
+        push.success({ title: data.message, message: 'Producto registrado' })
+        getProductList(URL_BASE_API + '/api/v1/products?page=1&limit=10')
+    } catch (err) {
+        if (err.message.includes('401')) {
+            push.warning({ title: 'Upps', message: 'Su sesión expiró' })
+            return navigateTo({ path: '/auth' })
+        }
+        push.error({ title: 'Error', message: err.message, timeout: 8000 })
+    } finally {
+        loading.value = false
+    }
+}
 
 
 
