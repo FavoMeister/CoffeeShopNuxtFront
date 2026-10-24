@@ -147,8 +147,8 @@
             </div>
 
             <footer class="bg-primary text-white text-center py-4 mt-auto">
-                <p class="text-sm font-light">Proyecto Práctico Desarrollado durante el **Curso Nuxt 4 Practico**</p>
-                <p class="text-xs opacity-70">© 2025 Café Orden. Todos los derechos reservados.</p>
+                <p class="text-sm font-light">Proyecto Práctico</p>
+                <p class="text-xs opacity-70">© 2026 Café Orden. Todos los derechos reservados.</p>
             </footer>
 
             <div v-show="formData?.id >= 0" id="product-modal"
@@ -350,7 +350,87 @@ const saveProduct = async () => {
     }
 }
 
+const updateProduct = async () => {
 
+    error.value = ''
+
+    if (!formData.value.name) {
+        push.warning({ message: 'Debe ingresar el nombre del producto' })
+        return
+    }
+    loading.value = true
+    try {
+        formData.value.image_url = formData.value.imageUrl
+        delete formData.value.imageUrl
+        //delete formData.value.id
+        const { data } = await axios.put(URL_BASE_API + '/api/v1/products/' + formData.value?.id, formData.value, {
+            headers: {
+                Authorization: `${token.value.token_type} ${token.value.token}`
+            }
+        })
+        formData.value = {
+            id: -1,
+            name: '',
+            description: '',
+            price: '',
+            category: '',
+            imageUrl: '',
+            tax: 0,
+            stock: 0,
+            reference: ''
+        }
+        push.success({ title: data.message, message: 'Producto Actualizado' })
+        getProductList(URL_BASE_API + '/api/v1/products?page=1&limit=10')
+    } catch (err) {
+        if (err.message.includes('401')) {
+            push.warning({ title: 'Upps', message: 'Su sesión expiró' })
+            return navigateTo({ path: '/auth' })
+        }
+        push.error({ title: 'Error', message: err.message, timeout: 8000 })
+    } finally {
+        loading.value = false
+    }
+}
+
+const deleteProduct = async (id) => {
+    if (!confirm('Confirmar eliminación')) return
+    error.value = ''
+
+    if (!id) {
+        push.warning({ message: 'Debe ingresar el id del producto' })
+        return
+    }
+    loading.value = true
+    try {
+
+        const { data } = await axios.delete(URL_BASE_API + '/api/v1/products/' + id, {
+            headers: {
+                Authorization: `${token.value.token_type} ${token.value.token}`
+            }
+        })
+        formData.value = {
+            id: -1,
+            name: '',
+            description: '',
+            price: '',
+            category: '',
+            imageUrl: '',
+            tax: 0,
+            stock: 0,
+            reference: ''
+        }
+        push.success({ title: data.message, message: 'Producto Eliminado' })
+        getProductList(URL_BASE_API + '/api/v1/products?page=1&limit=10')
+    } catch (err) {
+        if (err.message.includes('401')) {
+            push.warning({ title: 'Upps', message: 'Su sesión expiró' })
+            return navigateTo({ path: '/auth' })
+        }
+        push.error({ title: 'Error', message: err.message, timeout: 8000 })
+    } finally {
+        loading.value = false
+    }
+}
 
 onMounted(() => {
     loading.value = false
