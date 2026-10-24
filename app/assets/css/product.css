@@ -1,0 +1,9 @@
+.modal {
+    z-index: 1000;
+}
+
+.is-editing {
+    background-color: #fef3c7;
+}
+
+/* Amarillo claro para la fila editada */
