@@ -6,7 +6,7 @@
                 <i class="fas fa-mug-hot text-xl text-secondary"></i>
                 <span class="text-2xl font-bold tracking-wider">CAFÉ ORDEN</span>
             </div>
-
+            <MenuComponent />
             <div class="flex items-center space-x-4">
                 <div class="relative group hidden lg:block">
                     <!-- Botón del Usuario -->
@@ -271,7 +271,7 @@ const token = ref({
     token: '',
     token_type: ''
 })
-const loading = ref(true)
+const loading = ref(false)
 const product = ref()
 const modalQuantity = ref(1)
 const customerName = ref()
