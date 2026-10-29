@@ -2,6 +2,10 @@ import { defineNuxtConfig } from "nuxt/config";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr:false,
+  nitro:{
+    preset:'static'
+  },
   compatibilityDate: '2025-07-15',
   build: {
     transpile: ['notivue']
@@ -13,6 +17,7 @@ export default defineNuxtConfig({
     'notivue/animations.css'
   ],
   app: {
+    baseURL:'/',
     pageTransition: { name: "page", mode: "out-in" },
     head: {
       title: "Nuxt COFFEE - Menu and Orders",

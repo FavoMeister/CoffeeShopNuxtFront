@@ -141,8 +141,8 @@
             </div>
 
             <footer class="bg-primary text-white text-center py-4 mt-auto">
-                <p class="text-sm font-light">Proyecto Práctico Desarrollado durante el **Curso Nuxt 4 Practico**</p>
-                <p class="text-xs opacity-70">© 2025 Café Orden. Todos los derechos reservados.</p>
+                <p class="text-sm font-light">Proyecto Práctico</p>
+                <p class="text-xs opacity-70">© 2026 Café Orden. Todos los derechos reservados.</p>
             </footer>
 
 
